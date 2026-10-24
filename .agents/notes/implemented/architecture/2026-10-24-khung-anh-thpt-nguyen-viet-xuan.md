@@ -11,7 +11,7 @@ Người dùng cung cấp một file ảnh khung kỷ niệm 55 năm Trường T
 2. **Kiến Trúc Ứng Dụng Web Tĩnh (Client-Side Zero-Backend)**:
    - Tách biệt module tính toán hình học và kết xuất Canvas tại `src/compositor.js` (pure ES module, không phụ thuộc DOM, kiểm thử trực tiếp bằng `node:test`).
    - Luồng kết xuất 2 lớp trên `<canvas width="1024" height="1024">`:
-     - **Lớp 1 (Dưới)**: Ảnh người dùng được tự động căn vừa khít (cover) vùng lỗ tròn `(cx = 504, cy = 434, r_clip = 302)`, hỗ trợ kéo thả vị trí (pan), phóng to/thu nhỏ (zoom), xoay 90° và khóa biên (boundary clamping) để ảnh không bao giờ bị kéo lệch hở khoảng trống trong vòng tròn.
+     - **Lớp 1 (Dưới)**: Ảnh người dùng được tự động căn vừa khít (cover) vùng lỗ tròn `(cx = 504, cy = 434, r_clip = 306)`, hỗ trợ kéo thả tự do bằng chuột/cảm ứng (pan 360° kể cả ở mức zoom 100% hoặc thu nhỏ), phóng to/thu nhỏ từ `25%` đến `400%` quanh tâm con trỏ/điểm chạm qua [`zoomAroundPoint`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L50-L79), bộ nút `+/-` và 4 hướng (`Trái`, `Lên`, `Xuống`, `Phải`), cùng xoay 90°.
      - **Lớp 2 (Trên)**: Lớp khung `frame.png` có kênh Alpha trong suốt ở vùng tròn, giúp viền xanh phát sáng và góc chữ "55" nằm đè tự nhiên lên trên ảnh người dùng.
    - **Hai Chế Độ Hiển Thị (`Máy tính` & `Điện thoại`)**:
      - Tự động nhận diện chế độ mặc định qua [`detectDefaultViewMode`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L81-L83) (`<= 768px` chọn `mobile`, `> 768px` chọn `desktop`) kết hợp thanh chuyển đổi thủ công ở đầu trang.

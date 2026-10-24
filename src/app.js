@@ -2,6 +2,7 @@ import {
   FRAME_SPECS,
   computeInitialPlacement,
   clampPlacement,
+  zoomAroundPoint,
   renderAvatarComposite,
   detectDefaultViewMode,
   computePinchZoom,
@@ -14,6 +15,8 @@ const canvas = document.getElementById('avatarCanvas');
 const ctx = canvas.getContext('2d');
 const canvasDropzone = document.getElementById('canvasDropzone');
 const circleUploadPrompt = document.getElementById('circleUploadPrompt');
+const dragOverlayBadge = document.getElementById('dragOverlayBadge');
+const dragOverlayText = document.getElementById('dragOverlayText');
 const gestureHint = document.getElementById('gestureHint');
 const photoInput = document.getElementById('photoInput');
 const uploadBtn = document.getElementById('uploadBtn');
@@ -23,6 +26,12 @@ const downloadBtnLabel = document.getElementById('downloadBtnLabel');
 const adjustControls = document.getElementById('adjustControls');
 const zoomRange = document.getElementById('zoomRange');
 const zoomValue = document.getElementById('zoomValue');
+const zoomOutBtn = document.getElementById('zoomOutBtn');
+const zoomInBtn = document.getElementById('zoomInBtn');
+const moveLeftBtn = document.getElementById('moveLeftBtn');
+const moveUpBtn = document.getElementById('moveUpBtn');
+const moveDownBtn = document.getElementById('moveDownBtn');
+const moveRightBtn = document.getElementById('moveRightBtn');
 const rotateBtn = document.getElementById('rotateBtn');
 const resetBtn = document.getElementById('resetBtn');
 const statusMessage = document.getElementById('statusMessage');
@@ -34,9 +43,26 @@ let currentViewMode = detectDefaultViewMode(window.innerWidth);
 const activePointers = new Map();
 let pinchStartDistance = 0;
 let pinchStartZoom = 1;
+let pinchLastMidpoint = null;
+let holdIntervalId = null;
 
 function getTouchDistance(p1, p2) {
   return Math.hypot(p2.x - p1.x, p2.y - p1.y);
+}
+
+function getMidpoint(p1, p2) {
+  return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+}
+
+function clientToCanvasCoords(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = FRAME_SPECS.canvasSize / (rect.width || FRAME_SPECS.canvasSize);
+  const scaleY = FRAME_SPECS.canvasSize / (rect.height || FRAME_SPECS.canvasSize);
+  return {
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY,
+    scale: scaleX,
+  };
 }
 
 function setStatus(text, type = 'info') {
@@ -64,10 +90,16 @@ function syncUI() {
   modeMobileBtn.setAttribute('aria-pressed', String(isMobile));
 
   circleUploadPrompt.hidden = hasPhoto;
+  dragOverlayBadge.hidden = !hasPhoto;
   gestureHint.hidden = !hasPhoto;
+
+  dragOverlayText.textContent = isMobile
+    ? 'Chạm & kéo để đặt vị trí ảnh'
+    : 'Giữ chuột kéo để đặt vị trí ảnh';
+
   gestureHint.textContent = isMobile
-    ? 'Mẹo: Dùng 1 ngón tay kéo ảnh, 2 ngón tay chụm/mở để thu phóng.'
-    : 'Mẹo: Kéo chuột để căn chỉnh khuôn mặt • Lăn chuột để thu phóng.';
+    ? 'Mẹo: 1 ngón tay kéo di chuyển ảnh • 2 ngón tay chụm/mở để phóng to thu nhỏ.'
+    : 'Mẹo: Giữ chuột trái kéo ảnh để chọn vị trí • Lăn chuột để phóng to / thu nhỏ.';
 
   canvasDropzone.classList.toggle('has-photo', hasPhoto);
   downloadBtn.disabled = !hasPhoto;
@@ -99,6 +131,69 @@ function setViewMode(mode) {
 modeDesktopBtn.addEventListener('click', () => setViewMode('desktop'));
 modeMobileBtn.addEventListener('click', () => setViewMode('mobile'));
 
+function nudgeOffset(dx, dy) {
+  if (!userImage || !placement) return;
+  placement = clampPlacement(
+    {
+      ...placement,
+      offsetX: placement.offsetX + dx,
+      offsetY: placement.offsetY + dy,
+    },
+    userImage.naturalWidth,
+    userImage.naturalHeight,
+    FRAME_SPECS
+  );
+  syncUI();
+}
+
+function stepZoom(delta) {
+  if (!userImage || !placement) return;
+  placement = zoomAroundPoint(
+    placement,
+    placement.zoom + delta,
+    FRAME_SPECS.centerX,
+    FRAME_SPECS.centerY,
+    userImage.naturalWidth,
+    userImage.naturalHeight,
+    FRAME_SPECS
+  );
+  syncUI();
+}
+
+function bindHoldAction(button, actionFn) {
+  const stopHold = () => {
+    if (holdIntervalId !== null) {
+      clearInterval(holdIntervalId);
+      holdIntervalId = null;
+    }
+  };
+
+  button.addEventListener('pointerdown', (e) => {
+    if (button.disabled) return;
+    e.preventDefault();
+    actionFn();
+    stopHold();
+    holdIntervalId = setInterval(actionFn, 75);
+  });
+
+  button.addEventListener('pointerup', stopHold);
+  button.addEventListener('pointerleave', stopHold);
+  button.addEventListener('pointercancel', stopHold);
+  button.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      actionFn();
+    }
+  });
+}
+
+bindHoldAction(zoomOutBtn, () => stepZoom(-0.08));
+bindHoldAction(zoomInBtn, () => stepZoom(0.08));
+bindHoldAction(moveLeftBtn, () => nudgeOffset(-14, 0));
+bindHoldAction(moveRightBtn, () => nudgeOffset(14, 0));
+bindHoldAction(moveUpBtn, () => nudgeOffset(0, -14));
+bindHoldAction(moveDownBtn, () => nudgeOffset(0, 14));
+
 function loadUserFile(file) {
   if (!file) return;
   if (!file.type.startsWith('image/')) {
@@ -113,7 +208,7 @@ function loadUserFile(file) {
     userImage = img;
     placement = computeInitialPlacement(img.naturalWidth, img.naturalHeight, FRAME_SPECS);
     syncUI();
-    setStatus('Đã ghép ảnh vào khung tròn! Bạn có thể kéo ảnh để căn chỉnh hoặc tải về ngay.', 'success');
+    setStatus('Đã ghép ảnh! Hãy kéo ảnh trên khung hoặc dùng nút +/- để chỉnh vừa khít vòng tròn.', 'success');
   };
   img.onerror = () => {
     URL.revokeObjectURL(objectUrl);
@@ -177,18 +272,29 @@ canvasDropzone.addEventListener('pointerdown', (e) => {
   if (!userImage || !placement) return;
   if (e.target === circleUploadPrompt || circleUploadPrompt.contains(e.target)) return;
 
+  e.preventDefault();
+  canvasDropzone.focus();
   activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  canvasDropzone.setPointerCapture(e.pointerId);
+  canvasDropzone.classList.add('is-dragging');
+
+  try {
+    canvasDropzone.setPointerCapture(e.pointerId);
+  } catch {
+    // Ignore if synthetic pointer event
+  }
 
   if (activePointers.size === 2) {
     const pts = Array.from(activePointers.values());
     pinchStartDistance = getTouchDistance(pts[0], pts[1]);
     pinchStartZoom = placement.zoom;
+    pinchLastMidpoint = getMidpoint(pts[0], pts[1]);
   }
 });
 
 canvasDropzone.addEventListener('pointermove', (e) => {
   if (!activePointers.has(e.pointerId) || !userImage || !placement) return;
+  e.preventDefault();
+
   const prev = activePointers.get(e.pointerId);
   const curr = { x: e.clientX, y: e.clientY };
   activePointers.set(e.pointerId, curr);
@@ -196,22 +302,45 @@ canvasDropzone.addEventListener('pointermove', (e) => {
   if (activePointers.size === 2) {
     const pts = Array.from(activePointers.values());
     const dist = getTouchDistance(pts[0], pts[1]);
+    const midpoint = getMidpoint(pts[0], pts[1]);
+    const canvasFocal = clientToCanvasCoords(midpoint.x, midpoint.y);
     const nextZoom = computePinchZoom(pinchStartZoom, pinchStartDistance, dist, FRAME_SPECS);
-    placement = clampPlacement(
-      { ...placement, zoom: nextZoom },
+
+    let nextPlacement = zoomAroundPoint(
+      placement,
+      nextZoom,
+      canvasFocal.x,
+      canvasFocal.y,
       userImage.naturalWidth,
       userImage.naturalHeight,
       FRAME_SPECS
     );
+
+    if (pinchLastMidpoint) {
+      const dx = (midpoint.x - pinchLastMidpoint.x) * canvasFocal.scale;
+      const dy = (midpoint.y - pinchLastMidpoint.y) * canvasFocal.scale;
+      nextPlacement = clampPlacement(
+        {
+          ...nextPlacement,
+          offsetX: nextPlacement.offsetX + dx,
+          offsetY: nextPlacement.offsetY + dy,
+        },
+        userImage.naturalWidth,
+        userImage.naturalHeight,
+        FRAME_SPECS
+      );
+    }
+
+    pinchLastMidpoint = midpoint;
+    placement = nextPlacement;
     syncUI();
     return;
   }
 
   if (activePointers.size === 1) {
-    const rect = canvas.getBoundingClientRect();
-    const scaleToCanvas = FRAME_SPECS.canvasSize / (rect.width || FRAME_SPECS.canvasSize);
-    const dx = (curr.x - prev.x) * scaleToCanvas;
-    const dy = (curr.y - prev.y) * scaleToCanvas;
+    const { scale } = clientToCanvasCoords(curr.x, curr.y);
+    const dx = (curr.x - prev.x) * scale;
+    const dy = (curr.y - prev.y) * scale;
 
     placement = clampPlacement(
       {
@@ -231,6 +360,10 @@ function endPointerDrag(e) {
   activePointers.delete(e.pointerId);
   if (activePointers.size < 2) {
     pinchStartDistance = 0;
+    pinchLastMidpoint = null;
+  }
+  if (activePointers.size === 0) {
+    canvasDropzone.classList.remove('is-dragging');
   }
 }
 
@@ -242,9 +375,13 @@ canvasDropzone.addEventListener(
   (e) => {
     if (!userImage || !placement) return;
     e.preventDefault();
-    const zoomDelta = e.deltaY < 0 ? 0.08 : -0.08;
-    placement = clampPlacement(
-      { ...placement, zoom: placement.zoom + zoomDelta },
+    const focal = clientToCanvasCoords(e.clientX, e.clientY);
+    const zoomDelta = e.deltaY < 0 ? 0.1 : -0.1;
+    placement = zoomAroundPoint(
+      placement,
+      placement.zoom + zoomDelta,
+      focal.x,
+      focal.y,
       userImage.naturalWidth,
       userImage.naturalHeight,
       FRAME_SPECS
@@ -263,31 +400,35 @@ canvasDropzone.addEventListener('keydown', (e) => {
     return;
   }
 
-  const step = 12;
-  let nextState = null;
-  if (e.key === 'ArrowLeft') nextState = { ...placement, offsetX: placement.offsetX - step };
-  if (e.key === 'ArrowRight') nextState = { ...placement, offsetX: placement.offsetX + step };
-  if (e.key === 'ArrowUp') nextState = { ...placement, offsetY: placement.offsetY - step };
-  if (e.key === 'ArrowDown') nextState = { ...placement, offsetY: placement.offsetY + step };
-  if (e.key === '+' || e.key === '=') nextState = { ...placement, zoom: placement.zoom + 0.1 };
-  if (e.key === '-') nextState = { ...placement, zoom: placement.zoom - 0.1 };
-
-  if (nextState) {
+  const step = 14;
+  if (e.key === 'ArrowLeft') {
     e.preventDefault();
-    placement = clampPlacement(
-      nextState,
-      userImage.naturalWidth,
-      userImage.naturalHeight,
-      FRAME_SPECS
-    );
-    syncUI();
+    nudgeOffset(-step, 0);
+  } else if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    nudgeOffset(step, 0);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    nudgeOffset(0, -step);
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    nudgeOffset(0, step);
+  } else if (e.key === '+' || e.key === '=') {
+    e.preventDefault();
+    stepZoom(0.1);
+  } else if (e.key === '-') {
+    e.preventDefault();
+    stepZoom(-0.1);
   }
 });
 
 zoomRange.addEventListener('input', () => {
   if (!userImage || !placement) return;
-  placement = clampPlacement(
-    { ...placement, zoom: Number(zoomRange.value) },
+  placement = zoomAroundPoint(
+    placement,
+    Number(zoomRange.value),
+    FRAME_SPECS.centerX,
+    FRAME_SPECS.centerY,
     userImage.naturalWidth,
     userImage.naturalHeight,
     FRAME_SPECS
@@ -310,7 +451,7 @@ resetBtn.addEventListener('click', () => {
   if (!userImage) return;
   placement = computeInitialPlacement(userImage.naturalWidth, userImage.naturalHeight, FRAME_SPECS);
   syncUI();
-  setStatus('Đã đưa ảnh về vị trí căn giữa mặc định.', 'info');
+  setStatus('Đã đưa ảnh về vị trí căn giữa vừa khung tròn.', 'info');
 });
 
 downloadBtn.addEventListener('click', () => {

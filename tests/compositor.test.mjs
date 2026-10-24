@@ -4,6 +4,7 @@ import {
   FRAME_SPECS,
   computeInitialPlacement,
   clampPlacement,
+  zoomAroundPoint,
   renderAvatarComposite,
   detectDefaultViewMode,
   computePinchZoom,
@@ -15,9 +16,10 @@ test('computeInitialPlacement scales portrait and landscape photos to cover the 
   assert.equal(portrait.offsetX, 0);
   assert.equal(portrait.offsetY, 0);
   assert.equal(portrait.rotationDeg, 0);
-  // Must tuck at least 2px under the solid blue ring (radius >= 298 -> diameter >= 596)
   assert.equal(FRAME_SPECS.holeRadiusX, 298);
   assert.equal(FRAME_SPECS.holeRadiusY, 289);
+  assert.equal(FRAME_SPECS.minZoom, 0.25);
+  assert.equal(FRAME_SPECS.maxZoom, 4);
   assert.ok(500 * portrait.baseScale >= FRAME_SPECS.holeRadiusX * 2);
   assert.ok(1000 * portrait.baseScale >= FRAME_SPECS.holeRadiusY * 2);
   assert.equal(Math.round(500 * portrait.baseScale), FRAME_SPECS.holeRadiusX * 2);
@@ -28,24 +30,37 @@ test('computeInitialPlacement scales portrait and landscape photos to cover the 
   assert.equal(Math.round(600 * landscape.baseScale), FRAME_SPECS.holeRadiusX * 2);
 });
 
-test('clampPlacement constrains zoom and pan offsets within circular cutout bounds including 90-degree rotation', () => {
-  const initial = computeInitialPlacement(596, 1192);
-  const clamped = clampPlacement(
-    { ...initial, zoom: 0.4, offsetX: 250, offsetY: -999 },
+test('clampPlacement allows zooming out below 100% and free X/Y positioning even on square photos', () => {
+  const square = computeInitialPlacement(596, 596);
+  // User can zoom out to 0.5 (50%) and move freely on both X and Y axes
+  const moved = clampPlacement(
+    { ...square, zoom: 0.5, offsetX: 120, offsetY: -95 },
     596,
-    1192
+    596
   );
-  assert.equal(clamped.zoom, 1);
-  assert.equal(clamped.offsetX, 0);
-  assert.equal(clamped.offsetY, -307);
+  assert.equal(moved.zoom, 0.5);
+  assert.equal(moved.offsetX, 120);
+  assert.equal(moved.offsetY, -95);
 
-  const rotated = clampPlacement(
-    { ...initial, rotationDeg: 90, offsetX: 500, offsetY: 100 },
+  // Extreme values beyond the circle + image span are still safely clamped
+  const extreme = clampPlacement(
+    { ...square, zoom: 0.1, offsetX: 5000, offsetY: -5000 },
     596,
-    1192
+    596
   );
-  assert.equal(rotated.offsetX, 298);
-  assert.equal(rotated.offsetY, 9);
+  assert.equal(extreme.zoom, FRAME_SPECS.minZoom);
+  assert.ok(extreme.offsetX < 1000 && extreme.offsetX > 0);
+  assert.ok(extreme.offsetY > -1000 && extreme.offsetY < 0);
+});
+
+test('zoomAroundPoint scales zoom and adjusts offset so focal point remains anchored', () => {
+  const initial = computeInitialPlacement(596, 596);
+  // Focal point at (554, 484) is +50px X, +50px Y from circle center (504, 434)
+  // Doubling zoom from 1 to 2 shifts offset by -50px on both axes to keep focal point stationary
+  const zoomed = zoomAroundPoint(initial, 2, 554, 484, 596, 596);
+  assert.equal(zoomed.zoom, 2);
+  assert.equal(Math.round(zoomed.offsetX), -50);
+  assert.equal(Math.round(zoomed.offsetY), -50);
 });
 
 test('renderAvatarComposite clips user photo into circular window underneath the frame overlay', () => {
@@ -57,6 +72,7 @@ test('renderAvatarComposite clips user photo into circular window underneath the
     arc: (...args) => ops.push(['arc', ...args]),
     closePath: () => ops.push(['closePath']),
     clip: () => ops.push(['clip']),
+    fill: () => ops.push(['fill']),
     translate: (...args) => ops.push(['translate', ...args]),
     rotate: (...args) => ops.push(['rotate', ...args]),
     drawImage: (img, ...args) => ops.push(['drawImage', img.id, ...args]),
@@ -73,7 +89,6 @@ test('renderAvatarComposite clips user photo into circular window underneath the
     placement,
   });
 
-  // Verify user photo is clipped to circular hole first, then frame is drawn on top
   const arcOp = ops.find((op) => op[0] === 'arc');
   assert.deepEqual(arcOp.slice(1, 4), [FRAME_SPECS.centerX, FRAME_SPECS.centerY, FRAME_SPECS.clipRadius]);
 
@@ -92,6 +107,7 @@ test('renderAvatarComposite prefers naturalWidth and naturalHeight when present 
     arc: () => {},
     closePath: () => {},
     clip: () => {},
+    fill: () => {},
     translate: () => {},
     rotate: () => {},
     drawImage: (img, ...args) => drawCalls.push([img.id, ...args]),
@@ -119,10 +135,6 @@ test('detectDefaultViewMode selects mobile or desktop mode based on viewport wid
 test('computePinchZoom scales zoom proportionally to two-finger touch distance and clamps bounds', () => {
   assert.equal(computePinchZoom(1, 100, 180), 1.8);
   assert.equal(computePinchZoom(2, 100, 250), FRAME_SPECS.maxZoom);
-  assert.equal(computePinchZoom(1.5, 200, 100), FRAME_SPECS.minZoom);
+  assert.equal(computePinchZoom(0.4, 200, 100), FRAME_SPECS.minZoom);
   assert.equal(computePinchZoom(1.4, 0, 120), 1.4);
 });
-
-
-
-

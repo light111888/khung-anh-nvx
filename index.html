@@ -56,7 +56,7 @@
           class="canvas-stage"
           role="application"
           tabindex="0"
-          aria-label="Khung ảnh kỷ niệm 55 năm. Nhấn Enter để chọn ảnh, hoặc dùng phím mũi tên để di chuyển ảnh sau khi tải lên."
+          aria-label="Khung ảnh kỷ niệm 55 năm. Kéo chuột hoặc chạm để di chuyển ảnh, lăn chuột hoặc chụm 2 ngón tay để phóng to thu nhỏ."
         >
           <canvas id="avatarCanvas" width="1024" height="1024"></canvas>
 
@@ -74,10 +74,22 @@
             <span class="prompt-title">Nhấn để tải ảnh lên</span>
             <span class="prompt-sub">Ảnh sẽ tự động ghép vừa vào khung tròn</span>
           </button>
+
+          <div id="dragOverlayBadge" class="drag-overlay-badge" hidden aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="5 9 2 12 5 15" />
+              <polyline points="9 5 12 2 15 5" />
+              <polyline points="15 19 12 22 9 19" />
+              <polyline points="19 9 22 12 19 15" />
+              <line x1="2" y1="12" x2="22" y2="12" />
+              <line x1="12" y1="2" x2="12" y2="22" />
+            </svg>
+            <span id="dragOverlayText">Giữ chuột / Chạm kéo để đặt vị trí ảnh</span>
+          </div>
         </div>
 
         <p id="gestureHint" class="gesture-hint" hidden>
-          Mẹo: Kéo trực tiếp trên khung tròn để căn chỉnh vị trí khuôn mặt.
+          Mẹo: Kéo trực tiếp trên khung tròn để di chuyển ảnh • Lăn chuột hoặc chụm 2 ngón tay để phóng to / thu nhỏ.
         </p>
       </div>
 
@@ -110,21 +122,81 @@
         </div>
 
         <fieldset id="adjustControls" class="adjust-controls" disabled>
-          <legend class="adjust-legend">Căn chỉnh ảnh trong vòng tròn</legend>
+          <legend class="adjust-legend">Phóng to, thu nhỏ &amp; Di chuyển vị trí ảnh</legend>
 
           <div class="control-row">
             <div class="label-row">
-              <label for="zoomRange">Thu phóng</label>
+              <label for="zoomRange">Kích thước ảnh (Thu nhỏ / Phóng to)</label>
               <output id="zoomValue" for="zoomRange">100%</output>
             </div>
-            <input
-              type="range"
-              id="zoomRange"
-              min="1"
-              max="3.5"
-              step="0.02"
-              value="1"
-            />
+            <div class="zoom-bar">
+              <button
+                type="button"
+                id="zoomOutBtn"
+                class="btn btn-icon"
+                title="Thu nhỏ ảnh"
+                aria-label="Thu nhỏ ảnh"
+              >
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </button>
+
+              <input
+                type="range"
+                id="zoomRange"
+                min="0.25"
+                max="4"
+                step="0.02"
+                value="1"
+              />
+
+              <button
+                type="button"
+                id="zoomInBtn"
+                class="btn btn-icon"
+                title="Phóng to ảnh"
+                aria-label="Phóng to ảnh"
+              >
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="control-row">
+            <span class="sub-label">Di chuyển vị trí đặt ảnh (hoặc kéo trực tiếp trên ảnh)</span>
+            <div class="dpad-grid" role="group" aria-label="Các nút di chuyển vị trí ảnh">
+              <button type="button" id="moveLeftBtn" class="btn btn-secondary btn-dpad" title="Sang trái" aria-label="Di chuyển ảnh sang trái">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                <span>Trái</span>
+              </button>
+
+              <button type="button" id="moveUpBtn" class="btn btn-secondary btn-dpad" title="Lên trên" aria-label="Di chuyển ảnh lên trên">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="18 15 12 9 6 15" />
+                </svg>
+                <span>Lên</span>
+              </button>
+
+              <button type="button" id="moveDownBtn" class="btn btn-secondary btn-dpad" title="Xuống dưới" aria-label="Di chuyển ảnh xuống dưới">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+                <span>Xuống</span>
+              </button>
+
+              <button type="button" id="moveRightBtn" class="btn btn-secondary btn-dpad" title="Sang phải" aria-label="Di chuyển ảnh sang phải">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+                <span>Phải</span>
+              </button>
+            </div>
           </div>
 
           <div class="tool-buttons">
@@ -137,7 +209,11 @@
             </button>
 
             <button type="button" id="resetBtn" class="btn btn-secondary">
-              <span>Căn giữa lại</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+              </svg>
+              <span>Vừa khung &amp; Giữa</span>
             </button>
           </div>
         </fieldset>

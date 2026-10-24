@@ -5,8 +5,8 @@ export const FRAME_SPECS = Object.freeze({
   holeRadiusX: 298,
   holeRadiusY: 289,
   clipRadius: 306,
-  minZoom: 1,
-  maxZoom: 3.5,
+  minZoom: 0.25,
+  maxZoom: 4,
 });
 
 export function computeInitialPlacement(imageWidth, imageHeight, specs = FRAME_SPECS) {
@@ -33,8 +33,9 @@ export function clampPlacement(state, imageWidth, imageHeight, specs = FRAME_SPE
   const renderedWidth = (isQuarterTurn ? imageHeight : imageWidth) * scale;
   const renderedHeight = (isQuarterTurn ? imageWidth : imageHeight) * scale;
 
-  const maxOffsetX = Math.max(0, (renderedWidth - specs.holeRadiusX * 2) / 2);
-  const maxOffsetY = Math.max(0, (renderedHeight - specs.holeRadiusY * 2) / 2);
+  // Allow free positioning anywhere within the circular opening while keeping at least a portion visible
+  const maxOffsetX = specs.holeRadiusX * 0.75 + renderedWidth / 2;
+  const maxOffsetY = specs.holeRadiusY * 0.75 + renderedHeight / 2;
 
   const offsetX = Math.min(maxOffsetX, Math.max(-maxOffsetX, Number(state.offsetX) || 0));
   const offsetY = Math.min(maxOffsetY, Math.max(-maxOffsetY, Number(state.offsetY) || 0));
@@ -46,6 +47,39 @@ export function clampPlacement(state, imageWidth, imageHeight, specs = FRAME_SPE
     offsetX,
     offsetY,
   };
+}
+
+export function zoomAroundPoint(
+  state,
+  targetZoom,
+  focalX,
+  focalY,
+  imageWidth,
+  imageHeight,
+  specs = FRAME_SPECS
+) {
+  const prevZoom = state.zoom || 1;
+  const nextZoom = Math.min(specs.maxZoom, Math.max(specs.minZoom, Number(targetZoom) || 1));
+  const ratio = nextZoom / prevZoom;
+
+  // Vector from current image center (centerX + offsetX, centerY + offsetY) to focal point
+  const dx = focalX - (specs.centerX + state.offsetX);
+  const dy = focalY - (specs.centerY + state.offsetY);
+
+  const nextOffsetX = state.offsetX - dx * (ratio - 1);
+  const nextOffsetY = state.offsetY - dy * (ratio - 1);
+
+  return clampPlacement(
+    {
+      ...state,
+      zoom: nextZoom,
+      offsetX: nextOffsetX,
+      offsetY: nextOffsetY,
+    },
+    imageWidth,
+    imageHeight,
+    specs
+  );
 }
 
 export function renderAvatarComposite(ctx, { frameImage, userImage, placement, specs = FRAME_SPECS }) {
@@ -65,6 +99,9 @@ export function renderAvatarComposite(ctx, { frameImage, userImage, placement, s
     ctx.arc(centerX, centerY, clipRadius, 0, Math.PI * 2);
     ctx.closePath();
     ctx.clip();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
 
     ctx.translate(centerX + placement.offsetX, centerY + placement.offsetY);
     if (radians !== 0) {
@@ -90,6 +127,3 @@ export function computePinchZoom(initialZoom, initialDistance, currentDistance, 
   const rawZoom = (Number(initialZoom) || 1) * (currentDistance / initialDistance);
   return Math.min(specs.maxZoom, Math.max(specs.minZoom, rawZoom));
 }
-
-
-
