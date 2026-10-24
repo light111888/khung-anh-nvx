@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ghép Khung Ảnh 55 Năm Trường THPT Nguyễn Viết Xuân - Phú Thọ (1972 - 2027)</title>
+  <meta name="description" content="Tạo ảnh đại diện kỷ niệm 55 năm xây dựng và phát triển Trường THPT Nguyễn Viết Xuân - Phú Thọ (1972 - 2027), đón nhận Huân chương Lao động Hạng Nhất." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%230a3882' stroke='%23f59e0b' stroke-width='8'/><text x='50' y='66' font-family='sans-serif' font-size='44' font-weight='bold' fill='%23fde047' text-anchor='middle'>55</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <p class="eyebrow">1972 – 2027 • ĐÓN NHẬN HUÂN CHƯƠNG LAO ĐỘNG HẠNG NHẤT</p>
+      <h1>Ghép Khung Ảnh Kỷ Niệm 55 Năm THPT Nguyễn Viết Xuân</h1>
+    </header>
+
+    <section class="workspace" aria-label="Khu vực ghép ảnh vào khung">
+      <div class="canvas-column">
+        <div
+          id="canvasDropzone"
+          class="canvas-stage"
+          role="application"
+          tabindex="0"
+          aria-label="Khung ảnh kỷ niệm 55 năm. Nhấn Enter để chọn ảnh, hoặc dùng phím mũi tên để di chuyển ảnh sau khi tải lên."
+        >
+          <canvas id="avatarCanvas" width="1024" height="1024"></canvas>
+
+          <button
+            type="button"
+            id="circleUploadPrompt"
+            class="circle-upload-prompt"
+            aria-label="Tải ảnh lên để ghép vào phần tròn của khung"
+          >
+            <svg class="upload-icon" viewBox="0 0 24 24" width="36" height="36" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <span class="prompt-title">Nhấn để tải ảnh lên</span>
+            <span class="prompt-sub">Ảnh sẽ tự động ghép vừa vào khung tròn</span>
+          </button>
+        </div>
+
+        <p id="gestureHint" class="gesture-hint" hidden>
+          Mẹo: Kéo trực tiếp trên khung tròn để căn chỉnh vị trí khuôn mặt.
+        </p>
+      </div>
+
+      <div class="controls-card">
+        <input
+          type="file"
+          id="photoInput"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/*"
+          class="sr-only"
+        />
+
+        <div class="primary-actions">
+          <button type="button" id="uploadBtn" class="btn btn-upload">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            <span id="uploadBtnLabel">Chọn ảnh từ thiết bị</span>
+          </button>
+
+          <button type="button" id="downloadBtn" class="btn btn-download" disabled>
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span>Tải ảnh đã ghép (HD)</span>
+          </button>
+        </div>
+
+        <fieldset id="adjustControls" class="adjust-controls" disabled>
+          <legend class="adjust-legend">Căn chỉnh ảnh trong vòng tròn</legend>
+
+          <div class="control-row">
+            <div class="label-row">
+              <label for="zoomRange">Thu phóng</label>
+              <output id="zoomValue" for="zoomRange">100%</output>
+            </div>
+            <input
+              type="range"
+              id="zoomRange"
+              min="1"
+              max="3.5"
+              step="0.02"
+              value="1"
+            />
+          </div>
+
+          <div class="tool-buttons">
+            <button type="button" id="rotateBtn" class="btn btn-secondary">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+              <span>Xoay 90°</span>
+            </button>
+
+            <button type="button" id="resetBtn" class="btn btn-secondary">
+              <span>Căn giữa lại</span>
+            </button>
+          </div>
+        </fieldset>
+
+        <p id="statusMessage" class="status-message" role="status" aria-live="polite">
+          Hãy chọn 1 bức ảnh để ghép vào phần khung tròn.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
