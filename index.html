@@ -223,6 +223,51 @@
         </p>
       </div>
     </section>
+
+    <div
+      id="saveModal"
+      class="save-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="saveModalTitle"
+      hidden
+    >
+      <div class="save-modal-card">
+        <div class="save-modal-header">
+          <h2 id="saveModalTitle">Ảnh Của Bạn Đã Ghép Xong!</h2>
+          <button type="button" id="closeModalBtn" class="btn-close-modal" aria-label="Đóng cửa sổ">
+            ✕
+          </button>
+        </div>
+
+        <p class="save-modal-guide">
+          👉 <strong>Cách lưu trên Zalo / Điện thoại:</strong> Hãy <strong>nhấn giữ ngón tay (1 giây) trực tiếp vào bức ảnh bên dưới</strong> rồi chọn <strong>"Lưu ảnh"</strong> (hoặc <strong>"Lưu vào Ảnh"</strong>).
+        </p>
+
+        <div class="save-modal-img-wrap">
+          <img
+            id="saveModalImg"
+            class="save-modal-img"
+            alt="Ảnh kỷ niệm 55 năm THPT Nguyễn Viết Xuân đã ghép hoàn chỉnh"
+          />
+        </div>
+
+        <div class="save-modal-actions">
+          <button type="button" id="nativeShareBtn" class="btn btn-download" hidden>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+              <polyline points="16 6 12 2 8 6" />
+              <line x1="12" y1="2" x2="12" y2="15" />
+            </svg>
+            <span>Lưu vào Máy / Chia sẻ ngay</span>
+          </button>
+
+          <button type="button" id="closeModalActionBtn" class="btn btn-secondary">
+            <span>Quay lại chỉnh sửa thêm</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script type="module" src="./src/app.js"></script>

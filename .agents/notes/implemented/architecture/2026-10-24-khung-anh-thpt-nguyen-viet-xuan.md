@@ -3,29 +3,27 @@
 Status: implemented
 
 ## Problem
-Người dùng cung cấp một file ảnh khung kỷ niệm 55 năm Trường THPT Nguyễn Viết Xuân - Phú Thọ (1972 - 2027) ở định dạng JPEG (`1024x1024`), trong đó vùng tròn ở giữa có nền caro xám-trắng (baked-in checkerboard) và góc trên bên phải của cụm số "55" đè nhẹ vào cạnh dưới bên trái của vòng tròn. Yêu cầu xây dựng một trang web miễn phí, chạy online được, tập trung duy nhất vào một chức năng: người dùng tải ảnh cá nhân lên thì ảnh được ghép vừa vặn vào phần tròn trong khung và tải ảnh kết quả về máy.
+Người dùng cung cấp file ảnh khung kỷ niệm 55 năm Trường THPT Nguyễn Viết Xuân - Phú Thọ (1972 - 2027) ở định dạng JPEG (`1024x1024`), trong đó vùng tròn ở giữa có nền caro xám-trắng (baked-in checkerboard) và dải lụa đỏ cùng cụm số "55" đè lên cạnh dưới của vòng tròn. Yêu cầu xây dựng một trang web miễn phí, chạy online được, tập trung duy nhất vào một chức năng: người dùng tải ảnh cá nhân lên thì ảnh được ghép vừa vặn vào phần tròn trong khung và tải ảnh kết quả về máy (bao gồm cả khi mở trực tiếp bên trong trình duyệt Zalo trên điện thoại).
 
 ## Decision
 1. **Xử lý Asset Khung Ảnh (`assets/frame.png`)**:
-   - Cập nhật khung ảnh chính mới (bầu trời xanh, phong cảnh Đất Tổ, dải lụa đỏ `"ĐÓN NHẬN HUÂN CHƯƠNG LAO ĐỘNG HẠNG NHẤT"` và hai nhánh nguyệt quế vàng ôm dưới đáy vòng tròn).
-   - Tách kênh Alpha chính xác cấp độ sub-pixel từ ảnh gốc `1024x1024` bằng đường cong nội suy biên vòng tròn xanh quanh tâm `(cx = 510.0, cy = 462.5)` kết hợp đa thức bậc 4 của viền trên dải lụa đỏ-vàng và miền lá nguyệt quế vàng, khử nhiễu màu viền (color decontamination) để triệt tiêu hoàn toàn viền caro xám-trắng.
+   - Sử dụng khung ảnh chính thức có hình cổng trường và dãy nhà học Trường THPT Nguyễn Viết Xuân - Phú Thọ, chim bồ câu xanh, hoa phượng đỏ, hai nhánh nguyệt quế vàng và dải lụa `"ĐÓN NHẬN HUÂN CHƯƠNG LAO ĐỘNG HẠNG NHẤT"`.
+   - Tách kênh Alpha chính xác cấp độ sub-pixel từ ảnh gốc `1024x1024` bằng đường cong nội suy biên vòng tròn xanh quanh tâm `(cx = 510.0, cy = 415.0, r = 247.0)` kết hợp đường biên trên của dải lụa đỏ-vàng và hai nhánh nguyệt quế vàng, khử nhiễu màu viền (color decontamination) để triệt tiêu hoàn toàn nền caro xám-trắng.
 2. **Kiến Trúc Ứng Dụng Web Tĩnh (Client-Side Zero-Backend)**:
-   - Tách biệt module tính toán hình học và kết xuất Canvas tại `src/compositor.js` (pure ES module, không phụ thuộc DOM, kiểm thử trực tiếp bằng `node:test`).
+   - Tách biệt module tính toán hình học và kết xuất Canvas tại [`src/compositor.js`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js) (pure ES module, không phụ thuộc DOM, kiểm thử trực tiếp bằng `node:test`).
    - Luồng kết xuất 2 lớp trên `<canvas width="1024" height="1024">`:
-     - **Lớp 1 (Dưới)**: Ảnh người dùng được tự động căn vừa khít (cover) vùng lỗ tròn `(cx = 510, cy = 456, r_clip = 328)`, hỗ trợ kéo thả tự do bằng chuột/cảm ứng (pan 360° kể cả ở mức zoom 100% hoặc thu nhỏ), phóng to/thu nhỏ từ `25%` đến `400%` quanh tâm con trỏ/điểm chạm qua [`zoomAroundPoint`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L50-L79), bộ nút `+/-` và 4 hướng (`Trái`, `Lên`, `Xuống`, `Phải`), cùng xoay 90°.
-     - **Lớp 2 (Trên)**: Lớp khung `frame.png` có kênh Alpha trong suốt ở vùng tròn, giúp viền xanh phát sáng và góc chữ "55" nằm đè tự nhiên lên trên ảnh người dùng.
+     - **Lớp 1 (Dưới)**: Ảnh người dùng được tự động căn vừa khít (cover) vùng lỗ tròn `(cx = 510, cy = 415, r_clip = 258)`, hỗ trợ kéo thả tự do bằng chuột/cảm ứng (pan 360° kể cả ở mức zoom 100% hoặc thu nhỏ), phóng to/thu nhỏ từ `25%` đến `400%` quanh tâm con trỏ/điểm chạm qua [`zoomAroundPoint`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L50-L79), bộ nút `+/-` và 4 hướng (`Trái`, `Lên`, `Xuống`, `Phải`), cùng xoay 90°.
+     - **Lớp 2 (Trên)**: Lớp khung `frame.png` có kênh Alpha trong suốt ở vùng tròn, giúp viền xanh phát sáng, nhánh nguyệt quế và dải lụa nằm đè tự nhiên lên trên ảnh người dùng.
    - **Hai Chế Độ Hiển Thị (`Máy tính` & `Điện thoại`)**:
-     - Tự động nhận diện chế độ mặc định qua [`detectDefaultViewMode`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L81-L83) (`<= 768px` chọn `mobile`, `> 768px` chọn `desktop`) kết hợp thanh chuyển đổi thủ công ở đầu trang.
-     - **Chế độ Máy tính (`desktop`)**: Bố cục 2 cột rộng rãi, hỗ trợ kéo chuột, lăn con lăn chuột để thu phóng, phím mũi tên và dán ảnh `Ctrl+V`.
-     - **Chế độ Điện thoại (`mobile`)**: Bố cục 1 cột gọn trên một màn hình dọc, nút bấm 2 cột vừa tầm ngón cái (`min-height: 48px`), hỗ trợ kéo 1 ngón và chụm/mở 2 ngón tay để phóng to/thu nhỏ qua [`computePinchZoom`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L85-L91).
-3. **Triển Khai Online Miễn Phí**:
-   - Đóng gói hoàn toàn tĩnh (HTML5 + CSS3 + ES Module JavaScript), không cần máy chủ backend, đảm bảo quyền riêng tư 100% (ảnh xử lý trực tiếp trên trình duyệt của người dùng) và triển khai trực tuyến miễn phí.
+     - Tự động nhận diện chế độ mặc định qua [`detectDefaultViewMode`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L131-L133) (`<= 768px` chọn `mobile`, `> 768px` chọn `desktop`) kết hợp thanh chuyển đổi thủ công ở đầu trang.
+   - **Cơ Chế Tải Ảnh Tương Thích Trình Duyệt Zalo (`#saveModal`)**:
+     - Phát hiện môi trường In-App WebView (Zalo, Messenger, Facebook, Instagram, TikTok) và chế độ Điện thoại qua [`isInAppWebView`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L145-L148) và [`shouldUseModalImageSave`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L150-L152).
+     - Thay vì kích hoạt `<a href="blob:..." download>` (vốn bị Zalo chặn và báo `"Bạn sẽ thoát Zalo và mở một ứng dụng khác"` rồi lỗi), ứng dụng mở hộp thoại `#saveModal` hiển thị thẻ `<img id="saveModalImg">` chứa `canvas.toDataURL('image/jpeg', 0.95)` để người dùng nhấn giữ 1 giây chọn **"Lưu ảnh"** trực tiếp trong Zalo, đồng thời tích hợp Web Share API (`navigator.share({ files })`) qua nút `#nativeShareBtn`.
 
 ## Alternatives Considered
-- **Chỉ cắt ảnh người dùng theo hình tròn `arc()` rồi vẽ đè lên trên ảnh JPEG gốc**: Bị loại bỏ vì góc trên bên phải của số `"55"` vàng và ánh sáng flare của viền xanh trong khung gốc nằm đè lên phần rìa của vòng tròn; nếu vẽ ảnh người dùng đè lên trên ảnh JPEG gốc sẽ làm mất góc chữ `"55"` và mất độ sâu tự nhiên của khung.
-- **Dùng thuật toán Flood-Fill / Magic Wand đơn giản để xóa nền caro**: Bị loại bỏ vì vùng ánh sáng trắng (lens flare) trên chữ `"55"` và trên viền xanh có độ bão hòa màu bằng 0 (`RGB = [255, 255, 255]`), trùng màu với ô vuông trắng của nền caro, khiến Flood-Fill ăn lẹm vào chi tiết đồ họa của khung.
-- **Xử lý ghép ảnh phía Server (Node/Python Backend)**: Bị loại bỏ vì tốn chi phí duy trì server, tăng độ trễ khi tải ảnh dung lượng lớn qua mạng và không cần thiết cho bài toán ghép khung 2D vốn thực thi tức thời ở tốc độ 60fps bằng HTML5 Canvas API.
+- **Dùng `<a href="blob:..." download>` cho mọi trình duyệt**: Bị loại bỏ trên Zalo/Mobile vì Zalo In-App Browser coi `blob:` là giao thức ngoài, bật hộp thoại thoát Zalo sang trình duyệt hệ thống nhưng trình duyệt ngoài không đọc được vùng nhớ `blob:` của Zalo WebView.
+- **Dùng `canvas.toDataURL('image/png')` trong thẻ `<img>` trên Android WebView**: Bị loại bỏ vì chuỗi Base64 PNG `1024x1024` nặng ~2MB có thể vượt giới hạn bộ đệm IPC của Android WebView khi người dùng nhấn giữ lưu ảnh; dùng `image/jpeg` chất lượng `0.95` (~220KB) cho chất lượng sắc nét tương đương (do ảnh xuất ra không có vùng trong suốt) và tương thích 100% với tính năng nhấn giữ `"Lưu ảnh"` của Zalo iOS & Android.
 
 ## Consequences
-- Người dùng mở link web trên điện thoại hoặc máy tính có thể chọn ảnh và nhận ngay ảnh ghép sắc nét chuẩn `1024x1024` trong chưa đầy 1 giây mà không cần đăng nhập hay tải ứng dụng.
-- Mọi phép toán tọa độ (auto-fit cover, pan clamping, zoom quanh tâm khung tròn) đều được bảo vệ bởi bộ unit test tự động theo phương pháp TDD.
+- Người dùng mở link web trên Zalo, Messenger, trình duyệt điện thoại hoặc máy tính đều có thể chọn ảnh, căn chỉnh và lưu ảnh ghép sắc nét chuẩn `1024x1024` ngay lập tức.
+- Mọi phép toán tọa độ và nhận diện môi trường Zalo đều được bảo vệ bởi 8 bài unit test tự động theo phương pháp TDD.

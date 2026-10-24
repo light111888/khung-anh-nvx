@@ -6,6 +6,7 @@ import {
   renderAvatarComposite,
   detectDefaultViewMode,
   computePinchZoom,
+  shouldUseModalImageSave,
 } from './compositor.js';
 
 const appShell = document.getElementById('appShell');
@@ -35,10 +36,16 @@ const moveRightBtn = document.getElementById('moveRightBtn');
 const rotateBtn = document.getElementById('rotateBtn');
 const resetBtn = document.getElementById('resetBtn');
 const statusMessage = document.getElementById('statusMessage');
+const saveModal = document.getElementById('saveModal');
+const saveModalImg = document.getElementById('saveModalImg');
+const nativeShareBtn = document.getElementById('nativeShareBtn');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const closeModalActionBtn = document.getElementById('closeModalActionBtn');
 
 let frameImage = null;
 let userImage = null;
 let placement = null;
+let pendingShareFile = null;
 let currentViewMode = detectDefaultViewMode(window.innerWidth);
 const activePointers = new Map();
 let pinchStartDistance = 0;
@@ -454,9 +461,75 @@ resetBtn.addEventListener('click', () => {
   setStatus('Đã đưa ảnh về vị trí căn giữa vừa khung tròn.', 'info');
 });
 
+function closeSaveModal() {
+  saveModal.hidden = true;
+}
+
+closeModalBtn.addEventListener('click', closeSaveModal);
+closeModalActionBtn.addEventListener('click', closeSaveModal);
+saveModal.addEventListener('click', (e) => {
+  if (e.target === saveModal) closeSaveModal();
+});
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !saveModal.hidden) {
+    closeSaveModal();
+  }
+});
+
+nativeShareBtn.addEventListener('click', async () => {
+  if (!pendingShareFile || typeof navigator.share !== 'function') return;
+  try {
+    await navigator.share({
+      files: [pendingShareFile],
+      title: 'Ảnh kỷ niệm 55 năm THPT Nguyễn Viết Xuân',
+    });
+  } catch (err) {
+    if (err && err.name !== 'AbortError') {
+      setStatus('Hãy nhấn giữ trực tiếp vào bức ảnh bên trên và chọn "Lưu ảnh".', 'info');
+    }
+  }
+});
+
+function openMobileSaveModal() {
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+  saveModalImg.src = dataUrl;
+  nativeShareBtn.hidden = true;
+  pendingShareFile = null;
+
+  canvas.toBlob(
+    (blob) => {
+      if (!blob) return;
+      try {
+        const file = new File(
+          [blob],
+          'khung-anh-55-nam-thpt-nguyen-viet-xuan.jpg',
+          { type: 'image/jpeg' }
+        );
+        if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+          pendingShareFile = file;
+          nativeShareBtn.hidden = false;
+        }
+      } catch {
+        // Ignore if File constructor or canShare is unsupported in old WebViews
+      }
+    },
+    'image/jpeg',
+    0.95
+  );
+
+  saveModal.hidden = false;
+  setStatus('Hãy nhấn giữ ngón tay (1 giây) vào ảnh vừa hiện ra và chọn "Lưu ảnh"!', 'success');
+}
+
 downloadBtn.addEventListener('click', () => {
   if (!userImage || !placement) return;
   redraw();
+
+  if (shouldUseModalImageSave(navigator.userAgent, currentViewMode)) {
+    openMobileSaveModal();
+    return;
+  }
+
   canvas.toBlob((blob) => {
     if (!blob) {
       setStatus('Không thể xuất file ảnh. Vui lòng thử lại.', 'error');

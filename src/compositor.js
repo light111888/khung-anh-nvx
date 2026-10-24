@@ -127,3 +127,16 @@ export function computePinchZoom(initialZoom, initialDistance, currentDistance, 
   const rawZoom = (Number(initialZoom) || 1) * (currentDistance / initialDistance);
   return Math.min(specs.maxZoom, Math.max(specs.minZoom, rawZoom));
 }
+
+export function isInAppWebView(userAgent = '') {
+  return /Zalo|FBAN|FBAV|FB_IAB|Messenger|Instagram|BytedanceWebview|TikTok|Line\//i.test(
+    String(userAgent)
+  );
+}
+
+export function shouldUseModalImageSave(userAgent = '', viewMode = 'desktop') {
+  if (isInAppWebView(userAgent)) return true;
+  if (viewMode === 'mobile') return true;
+  return /Android|iPhone|iPad|iPod/i.test(String(userAgent));
+}
+

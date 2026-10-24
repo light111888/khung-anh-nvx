@@ -8,6 +8,8 @@ import {
   renderAvatarComposite,
   detectDefaultViewMode,
   computePinchZoom,
+  isInAppWebView,
+  shouldUseModalImageSave,
 } from '../src/compositor.js';
 
 test('computeInitialPlacement scales portrait and landscape photos to cover the circular cutout', () => {
@@ -137,3 +139,21 @@ test('computePinchZoom scales zoom proportionally to two-finger touch distance a
   assert.equal(computePinchZoom(0.4, 200, 100), FRAME_SPECS.minZoom);
   assert.equal(computePinchZoom(1.4, 0, 120), 1.4);
 });
+
+test('isInAppWebView and shouldUseModalImageSave detect Zalo and mobile environments to avoid broken blob downloads', () => {
+  const zaloIosUA =
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Zalo iOS/240501';
+  const fbAndroidUA =
+    'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/124.0 Mobile Safari/537.36 [FBAN/EMA;FBLC/vi_VN;FBAV/410.0]';
+  const desktopChromeUA =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+  assert.equal(isInAppWebView(zaloIosUA), true);
+  assert.equal(isInAppWebView(fbAndroidUA), true);
+  assert.equal(isInAppWebView(desktopChromeUA), false);
+
+  assert.equal(shouldUseModalImageSave(zaloIosUA, 'desktop'), true);
+  assert.equal(shouldUseModalImageSave(desktopChromeUA, 'mobile'), true);
+  assert.equal(shouldUseModalImageSave(desktopChromeUA, 'desktop'), false);
+});
+
