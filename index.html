@@ -12,7 +12,38 @@
   <link rel="stylesheet" href="./src/styles.css" />
 </head>
 <body>
-  <main class="app-shell">
+  <main id="appShell" class="app-shell" data-view-mode="desktop">
+    <div class="top-bar">
+      <div class="mode-switcher" role="group" aria-label="Chọn chế độ hiển thị">
+        <button
+          type="button"
+          id="modeDesktopBtn"
+          class="mode-btn"
+          aria-pressed="true"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+          <span>Máy tính</span>
+        </button>
+
+        <button
+          type="button"
+          id="modeMobileBtn"
+          class="mode-btn"
+          aria-pressed="false"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+            <line x1="12" y1="18" x2="12.01" y2="18" />
+          </svg>
+          <span>Điện thoại</span>
+        </button>
+      </div>
+    </div>
+
     <header class="app-header">
       <p class="eyebrow">1972 – 2027 • ĐÓN NHẬN HUÂN CHƯƠNG LAO ĐỘNG HẠNG NHẤT</p>
       <h1>Ghép Khung Ảnh Kỷ Niệm 55 Năm THPT Nguyễn Viết Xuân</h1>
@@ -74,7 +105,7 @@
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            <span>Tải ảnh đã ghép (HD)</span>
+            <span id="downloadBtnLabel">Tải ảnh đã ghép (HD)</span>
           </button>
         </div>
 

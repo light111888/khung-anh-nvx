@@ -5,6 +5,8 @@ import {
   computeInitialPlacement,
   clampPlacement,
   renderAvatarComposite,
+  detectDefaultViewMode,
+  computePinchZoom,
 } from '../src/compositor.js';
 
 test('computeInitialPlacement scales portrait and landscape photos to cover the circular cutout', () => {
@@ -106,6 +108,21 @@ test('renderAvatarComposite prefers naturalWidth and naturalHeight when present 
 
   assert.deepEqual(drawCalls[0], ['dom-img', -295, -295, 590, 590]);
 });
+
+test('detectDefaultViewMode selects mobile or desktop mode based on viewport width', () => {
+  assert.equal(detectDefaultViewMode(375), 'mobile');
+  assert.equal(detectDefaultViewMode(768), 'mobile');
+  assert.equal(detectDefaultViewMode(769), 'desktop');
+  assert.equal(detectDefaultViewMode(1440), 'desktop');
+});
+
+test('computePinchZoom scales zoom proportionally to two-finger touch distance and clamps bounds', () => {
+  assert.equal(computePinchZoom(1, 100, 180), 1.8);
+  assert.equal(computePinchZoom(2, 100, 250), FRAME_SPECS.maxZoom);
+  assert.equal(computePinchZoom(1.5, 200, 100), FRAME_SPECS.minZoom);
+  assert.equal(computePinchZoom(1.4, 0, 120), 1.4);
+});
+
 
 
 

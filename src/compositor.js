@@ -79,4 +79,17 @@ export function renderAvatarComposite(ctx, { frameImage, userImage, placement, s
   }
 }
 
+export function detectDefaultViewMode(viewportWidth, mobileBreakpoint = 768) {
+  return Number(viewportWidth) <= mobileBreakpoint ? 'mobile' : 'desktop';
+}
+
+export function computePinchZoom(initialZoom, initialDistance, currentDistance, specs = FRAME_SPECS) {
+  if (!initialDistance || initialDistance <= 0 || !currentDistance || currentDistance <= 0) {
+    return Math.min(specs.maxZoom, Math.max(specs.minZoom, Number(initialZoom) || 1));
+  }
+  const rawZoom = (Number(initialZoom) || 1) * (currentDistance / initialDistance);
+  return Math.min(specs.maxZoom, Math.max(specs.minZoom, rawZoom));
+}
+
+
 

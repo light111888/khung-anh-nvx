@@ -13,6 +13,10 @@ Người dùng cung cấp một file ảnh khung kỷ niệm 55 năm Trường T
    - Luồng kết xuất 2 lớp trên `<canvas width="1024" height="1024">`:
      - **Lớp 1 (Dưới)**: Ảnh người dùng được tự động căn vừa khít (cover) vùng lỗ tròn `(cx = 504, cy = 434, r_clip = 302)`, hỗ trợ kéo thả vị trí (pan), phóng to/thu nhỏ (zoom), xoay 90° và khóa biên (boundary clamping) để ảnh không bao giờ bị kéo lệch hở khoảng trống trong vòng tròn.
      - **Lớp 2 (Trên)**: Lớp khung `frame.png` có kênh Alpha trong suốt ở vùng tròn, giúp viền xanh phát sáng và góc chữ "55" nằm đè tự nhiên lên trên ảnh người dùng.
+   - **Hai Chế Độ Hiển Thị (`Máy tính` & `Điện thoại`)**:
+     - Tự động nhận diện chế độ mặc định qua [`detectDefaultViewMode`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L81-L83) (`<= 768px` chọn `mobile`, `> 768px` chọn `desktop`) kết hợp thanh chuyển đổi thủ công ở đầu trang.
+     - **Chế độ Máy tính (`desktop`)**: Bố cục 2 cột rộng rãi, hỗ trợ kéo chuột, lăn con lăn chuột để thu phóng, phím mũi tên và dán ảnh `Ctrl+V`.
+     - **Chế độ Điện thoại (`mobile`)**: Bố cục 1 cột gọn trên một màn hình dọc, nút bấm 2 cột vừa tầm ngón cái (`min-height: 48px`), hỗ trợ kéo 1 ngón và chụm/mở 2 ngón tay để phóng to/thu nhỏ qua [`computePinchZoom`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L85-L91).
 3. **Triển Khai Online Miễn Phí**:
    - Đóng gói hoàn toàn tĩnh (HTML5 + CSS3 + ES Module JavaScript), không cần máy chủ backend, đảm bảo quyền riêng tư 100% (ảnh xử lý trực tiếp trên trình duyệt của người dùng) và triển khai trực tuyến miễn phí.
 
