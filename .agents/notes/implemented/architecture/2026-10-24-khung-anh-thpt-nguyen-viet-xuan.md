@@ -7,11 +7,12 @@ Người dùng cung cấp một file ảnh khung kỷ niệm 55 năm Trường T
 
 ## Decision
 1. **Xử lý Asset Khung Ảnh (`assets/frame.png`)**:
-   - Tách kênh Alpha chính xác cấp độ sub-pixel từ ảnh gốc `1024x1024` bằng chuỗi điều hòa Fourier bậc 4 quanh tâm `(cx = 504.0, cy = 434.0)` kết hợp miền đa giác bảo toàn góc serif vàng của cụm số `"55"` (`y ∈ [668.4, 685]`, `x ∈ [332, 370.6]`) và khử nhiễu màu viền (color decontamination) để triệt tiêu hoàn toàn viền xám-trắng khi đè lên ảnh tối.
+   - Cập nhật khung ảnh chính mới (bầu trời xanh, phong cảnh Đất Tổ, dải lụa đỏ `"ĐÓN NHẬN HUÂN CHƯƠNG LAO ĐỘNG HẠNG NHẤT"` và hai nhánh nguyệt quế vàng ôm dưới đáy vòng tròn).
+   - Tách kênh Alpha chính xác cấp độ sub-pixel từ ảnh gốc `1024x1024` bằng đường cong nội suy biên vòng tròn xanh quanh tâm `(cx = 510.0, cy = 462.5)` kết hợp đa thức bậc 4 của viền trên dải lụa đỏ-vàng và miền lá nguyệt quế vàng, khử nhiễu màu viền (color decontamination) để triệt tiêu hoàn toàn viền caro xám-trắng.
 2. **Kiến Trúc Ứng Dụng Web Tĩnh (Client-Side Zero-Backend)**:
    - Tách biệt module tính toán hình học và kết xuất Canvas tại `src/compositor.js` (pure ES module, không phụ thuộc DOM, kiểm thử trực tiếp bằng `node:test`).
    - Luồng kết xuất 2 lớp trên `<canvas width="1024" height="1024">`:
-     - **Lớp 1 (Dưới)**: Ảnh người dùng được tự động căn vừa khít (cover) vùng lỗ tròn `(cx = 504, cy = 434, r_clip = 306)`, hỗ trợ kéo thả tự do bằng chuột/cảm ứng (pan 360° kể cả ở mức zoom 100% hoặc thu nhỏ), phóng to/thu nhỏ từ `25%` đến `400%` quanh tâm con trỏ/điểm chạm qua [`zoomAroundPoint`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L50-L79), bộ nút `+/-` và 4 hướng (`Trái`, `Lên`, `Xuống`, `Phải`), cùng xoay 90°.
+     - **Lớp 1 (Dưới)**: Ảnh người dùng được tự động căn vừa khít (cover) vùng lỗ tròn `(cx = 510, cy = 456, r_clip = 328)`, hỗ trợ kéo thả tự do bằng chuột/cảm ứng (pan 360° kể cả ở mức zoom 100% hoặc thu nhỏ), phóng to/thu nhỏ từ `25%` đến `400%` quanh tâm con trỏ/điểm chạm qua [`zoomAroundPoint`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L50-L79), bộ nút `+/-` và 4 hướng (`Trái`, `Lên`, `Xuống`, `Phải`), cùng xoay 90°.
      - **Lớp 2 (Trên)**: Lớp khung `frame.png` có kênh Alpha trong suốt ở vùng tròn, giúp viền xanh phát sáng và góc chữ "55" nằm đè tự nhiên lên trên ảnh người dùng.
    - **Hai Chế Độ Hiển Thị (`Máy tính` & `Điện thoại`)**:
      - Tự động nhận diện chế độ mặc định qua [`detectDefaultViewMode`](file:///C:/Users/light/.gemini/antigravity/scratch/khung-anh-nvx/src/compositor.js#L81-L83) (`<= 768px` chọn `mobile`, `> 768px` chọn `desktop`) kết hợp thanh chuyển đổi thủ công ở đầu trang.

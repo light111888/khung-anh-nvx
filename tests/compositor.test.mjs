@@ -16,8 +16,10 @@ test('computeInitialPlacement scales portrait and landscape photos to cover the 
   assert.equal(portrait.offsetX, 0);
   assert.equal(portrait.offsetY, 0);
   assert.equal(portrait.rotationDeg, 0);
-  assert.equal(FRAME_SPECS.holeRadiusX, 298);
-  assert.equal(FRAME_SPECS.holeRadiusY, 289);
+  assert.equal(FRAME_SPECS.centerX, 510);
+  assert.equal(FRAME_SPECS.centerY, 456);
+  assert.equal(FRAME_SPECS.holeRadiusX, 322);
+  assert.equal(FRAME_SPECS.holeRadiusY, 314);
   assert.equal(FRAME_SPECS.minZoom, 0.25);
   assert.equal(FRAME_SPECS.maxZoom, 4);
   assert.ok(500 * portrait.baseScale >= FRAME_SPECS.holeRadiusX * 2);
@@ -31,22 +33,20 @@ test('computeInitialPlacement scales portrait and landscape photos to cover the 
 });
 
 test('clampPlacement allows zooming out below 100% and free X/Y positioning even on square photos', () => {
-  const square = computeInitialPlacement(596, 596);
-  // User can zoom out to 0.5 (50%) and move freely on both X and Y axes
+  const square = computeInitialPlacement(644, 644);
   const moved = clampPlacement(
     { ...square, zoom: 0.5, offsetX: 120, offsetY: -95 },
-    596,
-    596
+    644,
+    644
   );
   assert.equal(moved.zoom, 0.5);
   assert.equal(moved.offsetX, 120);
   assert.equal(moved.offsetY, -95);
 
-  // Extreme values beyond the circle + image span are still safely clamped
   const extreme = clampPlacement(
     { ...square, zoom: 0.1, offsetX: 5000, offsetY: -5000 },
-    596,
-    596
+    644,
+    644
   );
   assert.equal(extreme.zoom, FRAME_SPECS.minZoom);
   assert.ok(extreme.offsetX < 1000 && extreme.offsetX > 0);
@@ -54,10 +54,9 @@ test('clampPlacement allows zooming out below 100% and free X/Y positioning even
 });
 
 test('zoomAroundPoint scales zoom and adjusts offset so focal point remains anchored', () => {
-  const initial = computeInitialPlacement(596, 596);
-  // Focal point at (554, 484) is +50px X, +50px Y from circle center (504, 434)
-  // Doubling zoom from 1 to 2 shifts offset by -50px on both axes to keep focal point stationary
-  const zoomed = zoomAroundPoint(initial, 2, 554, 484, 596, 596);
+  const initial = computeInitialPlacement(644, 644);
+  // Focal point at (560, 506) is +50px X, +50px Y from circle center (510, 456)
+  const zoomed = zoomAroundPoint(initial, 2, 560, 506, 644, 644);
   assert.equal(zoomed.zoom, 2);
   assert.equal(Math.round(zoomed.offsetX), -50);
   assert.equal(Math.round(zoomed.offsetY), -50);
