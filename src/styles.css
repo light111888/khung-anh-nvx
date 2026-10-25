@@ -230,14 +230,14 @@ body {
   pointer-events: none;
 }
 
-/* Positioned directly inside the circular cutout (cx=49.8%, cy=40.5%, d=48%) */
+/* Positioned directly inside the circular cutout (cx=49.8%, cy=39.5%, d=46%) */
 .circle-upload-prompt {
   position: absolute;
   left: 49.8%;
-  top: 40.5%;
+  top: 39.5%;
   transform: translate(-50%, -50%);
-  width: 48%;
-  height: 48%;
+  width: 46%;
+  height: 46%;
   border-radius: 50%;
   border: 2px dashed rgba(255, 255, 255, 0.65);
   background: rgba(10, 56, 130, 0.78);
