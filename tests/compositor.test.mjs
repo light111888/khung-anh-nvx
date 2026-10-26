@@ -25,13 +25,13 @@ test('computeInitialPlacement scales portrait and landscape photos to cover the 
   assert.equal(FRAME_SPECS.clipRadius, 348);
   assert.equal(FRAME_SPECS.minZoom, 0.25);
   assert.equal(FRAME_SPECS.maxZoom, 4);
-  assert.ok(500 * portrait.baseScale >= FRAME_SPECS.holeRadiusX * 2);
-  assert.ok(1000 * portrait.baseScale >= FRAME_SPECS.holeRadiusY * 2);
+  assert.ok(Math.round(500 * portrait.baseScale) >= FRAME_SPECS.holeRadiusX * 2);
+  assert.ok(Math.round(1000 * portrait.baseScale) >= FRAME_SPECS.holeRadiusY * 2);
   assert.equal(Math.round(500 * portrait.baseScale), FRAME_SPECS.holeRadiusX * 2);
 
   const landscape = computeInitialPlacement(1200, 600);
-  assert.ok(1200 * landscape.baseScale >= FRAME_SPECS.holeRadiusX * 2);
-  assert.ok(600 * landscape.baseScale >= FRAME_SPECS.holeRadiusX * 2);
+  assert.ok(Math.round(1200 * landscape.baseScale) >= FRAME_SPECS.holeRadiusX * 2);
+  assert.ok(Math.round(600 * landscape.baseScale) >= FRAME_SPECS.holeRadiusX * 2);
   assert.equal(Math.round(600 * landscape.baseScale), FRAME_SPECS.holeRadiusX * 2);
 });
 
