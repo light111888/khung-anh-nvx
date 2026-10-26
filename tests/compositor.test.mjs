@@ -18,11 +18,11 @@ test('computeInitialPlacement scales portrait and landscape photos to cover the 
   assert.equal(portrait.offsetX, 0);
   assert.equal(portrait.offsetY, 0);
   assert.equal(portrait.rotationDeg, 0);
-  assert.equal(FRAME_SPECS.centerX, 510);
-  assert.equal(FRAME_SPECS.centerY, 462);
-  assert.equal(FRAME_SPECS.holeRadiusX, 328);
-  assert.equal(FRAME_SPECS.holeRadiusY, 322);
-  assert.equal(FRAME_SPECS.clipRadius, 336);
+  assert.equal(FRAME_SPECS.centerX, 512);
+  assert.equal(FRAME_SPECS.centerY, 474);
+  assert.equal(FRAME_SPECS.holeRadiusX, 342);
+  assert.equal(FRAME_SPECS.holeRadiusY, 342);
+  assert.equal(FRAME_SPECS.clipRadius, 348);
   assert.equal(FRAME_SPECS.minZoom, 0.25);
   assert.equal(FRAME_SPECS.maxZoom, 4);
   assert.ok(500 * portrait.baseScale >= FRAME_SPECS.holeRadiusX * 2);
@@ -57,9 +57,9 @@ test('clampPlacement allows zooming out below 100% and free X/Y positioning even
 });
 
 test('zoomAroundPoint scales zoom and adjusts offset so focal point remains anchored', () => {
-  const initial = computeInitialPlacement(656, 656);
-  // Focal point at (560, 512) is +50px X, +50px Y from circle center (510, 462)
-  const zoomed = zoomAroundPoint(initial, 2, 560, 512, 656, 656);
+  const initial = computeInitialPlacement(684, 684);
+  // Focal point at (562, 524) is +50px X, +50px Y from circle center (512, 474)
+  const zoomed = zoomAroundPoint(initial, 2, 562, 524, 684, 684);
   assert.equal(zoomed.zoom, 2);
   assert.equal(Math.round(zoomed.offsetX), -50);
   assert.equal(Math.round(zoomed.offsetY), -50);
