@@ -234,7 +234,7 @@ function initFrame() {
   img.onerror = () => {
     setStatus('Không thể tải khung ảnh mẫu. Vui lòng tải lại trang.', 'error');
   };
-  img.src = './assets/frame.png?v=8';
+  img.src = './assets/frame.png?v=9';
 }
 
 uploadBtn.addEventListener('click', () => photoInput.click());
