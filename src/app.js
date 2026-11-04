@@ -7,7 +7,7 @@ import {
   detectDefaultViewMode,
   computePinchZoom,
   shouldUseModalImageSave,
-} from './compositor.js?v=13';
+} from './compositor.js?v=14';
 
 const appShell = document.getElementById('appShell');
 const modeDesktopBtn = document.getElementById('modeDesktopBtn');
@@ -234,7 +234,7 @@ function initFrame() {
   img.onerror = () => {
     setStatus('Không thể tải khung ảnh mẫu. Vui lòng tải lại trang.', 'error');
   };
-  img.src = './assets/frame.png?v=13';
+  img.src = './assets/frame.png?v=14';
 }
 
 uploadBtn.addEventListener('click', () => photoInput.click());
