@@ -7,7 +7,7 @@ import {
   detectDefaultViewMode,
   computePinchZoom,
   shouldUseModalImageSave,
-} from './compositor.js?v=15';
+} from './compositor.js?v=16';
 
 const appShell = document.getElementById('appShell');
 const modeDesktopBtn = document.getElementById('modeDesktopBtn');
@@ -196,10 +196,10 @@ function bindHoldAction(button, actionFn) {
 
 bindHoldAction(zoomOutBtn, () => stepZoom(-0.08));
 bindHoldAction(zoomInBtn, () => stepZoom(0.08));
-bindHoldAction(moveLeftBtn, () => nudgeOffset(-14, 0));
-bindHoldAction(moveRightBtn, () => nudgeOffset(14, 0));
-bindHoldAction(moveUpBtn, () => nudgeOffset(0, -14));
-bindHoldAction(moveDownBtn, () => nudgeOffset(0, 14));
+bindHoldAction(moveLeftBtn, () => nudgeOffset(-28, 0));
+bindHoldAction(moveRightBtn, () => nudgeOffset(28, 0));
+bindHoldAction(moveUpBtn, () => nudgeOffset(0, -28));
+bindHoldAction(moveDownBtn, () => nudgeOffset(0, 28));
 
 function loadUserFile(file) {
   if (!file) return;
@@ -234,7 +234,7 @@ function initFrame() {
   img.onerror = () => {
     setStatus('Không thể tải khung ảnh mẫu. Vui lòng tải lại trang.', 'error');
   };
-  img.src = './assets/frame.png?v=15';
+  img.src = './assets/frame.png?v=16';
 }
 
 uploadBtn.addEventListener('click', () => photoInput.click());
@@ -407,7 +407,7 @@ canvasDropzone.addEventListener('keydown', (e) => {
     return;
   }
 
-  const step = 14;
+  const step = 28;
   if (e.key === 'ArrowLeft') {
     e.preventDefault();
     nudgeOffset(-step, 0);

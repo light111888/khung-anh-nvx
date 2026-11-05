@@ -18,11 +18,11 @@ test('computeInitialPlacement scales portrait and landscape photos to cover the 
   assert.equal(portrait.offsetX, 0);
   assert.equal(portrait.offsetY, 0);
   assert.equal(portrait.rotationDeg, 0);
-  assert.equal(FRAME_SPECS.centerX, 512);
-  assert.equal(FRAME_SPECS.centerY, 474);
-  assert.equal(FRAME_SPECS.holeRadiusX, 342);
-  assert.equal(FRAME_SPECS.holeRadiusY, 342);
-  assert.equal(FRAME_SPECS.clipRadius, 348);
+  assert.equal(FRAME_SPECS.centerX, 1024);
+  assert.equal(FRAME_SPECS.centerY, 948);
+  assert.equal(FRAME_SPECS.holeRadiusX, 684);
+  assert.equal(FRAME_SPECS.holeRadiusY, 684);
+  assert.equal(FRAME_SPECS.clipRadius, 696);
   assert.equal(FRAME_SPECS.minZoom, 0.25);
   assert.equal(FRAME_SPECS.maxZoom, 4);
   assert.ok(Math.round(500 * portrait.baseScale) >= FRAME_SPECS.holeRadiusX * 2);
@@ -52,14 +52,14 @@ test('clampPlacement allows zooming out below 100% and free X/Y positioning even
     644
   );
   assert.equal(extreme.zoom, FRAME_SPECS.minZoom);
-  assert.ok(extreme.offsetX < 1000 && extreme.offsetX > 0);
-  assert.ok(extreme.offsetY > -1000 && extreme.offsetY < 0);
+  assert.ok(extreme.offsetX < 2000 && extreme.offsetX > 0);
+  assert.ok(extreme.offsetY > -2000 && extreme.offsetY < 0);
 });
 
 test('zoomAroundPoint scales zoom and adjusts offset so focal point remains anchored', () => {
-  const initial = computeInitialPlacement(684, 684);
-  // Focal point at (562, 524) is +50px X, +50px Y from circle center (512, 474)
-  const zoomed = zoomAroundPoint(initial, 2, 562, 524, 684, 684);
+  const initial = computeInitialPlacement(1368, 1368);
+  // Focal point at (1074, 998) is +50px X, +50px Y from circle center (1024, 948)
+  const zoomed = zoomAroundPoint(initial, 2, 1074, 998, 1368, 1368);
   assert.equal(zoomed.zoom, 2);
   assert.equal(Math.round(zoomed.offsetX), -50);
   assert.equal(Math.round(zoomed.offsetY), -50);
@@ -82,7 +82,7 @@ test('renderAvatarComposite clips user photo into circular window underneath the
   };
 
   const userImg = { id: 'user-photo', width: 590, height: 590 };
-  const frameImg = { id: 'frame-overlay', width: 1024, height: 1024 };
+  const frameImg = { id: 'frame-overlay', width: 2048, height: 2048 };
   const placement = { baseScale: 1, zoom: 1.5, offsetX: 12, offsetY: -8, rotationDeg: 90 };
 
   renderAvatarComposite(mockCtx, {
@@ -97,7 +97,7 @@ test('renderAvatarComposite clips user photo into circular window underneath the
   const drawOps = ops.filter((op) => op[0] === 'drawImage');
   assert.equal(drawOps.length, 2);
   assert.deepEqual(drawOps[0], ['drawImage', 'user-photo', -442.5, -442.5, 885, 885]);
-  assert.deepEqual(drawOps[1], ['drawImage', 'frame-overlay', 0, 0, 1024, 1024]);
+  assert.deepEqual(drawOps[1], ['drawImage', 'frame-overlay', 0, 0, 2048, 2048]);
 });
 
 test('renderAvatarComposite prefers naturalWidth and naturalHeight when present on HTMLImageElement', () => {

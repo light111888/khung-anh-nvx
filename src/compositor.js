@@ -1,10 +1,10 @@
 export const FRAME_SPECS = Object.freeze({
-  canvasSize: 1024,
-  centerX: 512,
-  centerY: 474,
-  holeRadiusX: 342,
-  holeRadiusY: 342,
-  clipRadius: 348,
+  canvasSize: 2048,
+  centerX: 1024,
+  centerY: 948,
+  holeRadiusX: 684,
+  holeRadiusY: 684,
+  clipRadius: 696,
   minZoom: 0.25,
   maxZoom: 4,
 });
